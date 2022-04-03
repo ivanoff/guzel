@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  guzel:
+    container_name: guzel
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    working_dir: /app
+    tty: true
+    command: bash -c "npm init --force && npm i -S guzel && node run index"
+    ports:
+      - 3208:3208
+    volumes:
+      - ./index.js:/app/src/index.js

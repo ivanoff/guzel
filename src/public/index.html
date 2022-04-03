@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>guzel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script>
+  let currentPageId = 0;
+  const titleMaxLength = 20;
+  const cutTitle = title => title.length <= titleMaxLength ? title : `${title.slice(0,titleMaxLength-1)}...`;
+
+  const pressKeyHandler = ({ key }) => fetch(`/pages/${currentPageId}/press?key=${encodeURIComponent(key)}`);
+  const stopKeySpy = () => document.removeEventListener('keydown', pressKeyHandler);
+  const startKeySpy = () => document.addEventListener('keydown', pressKeyHandler);
+
+  const backHandler = async () => {
+    await fetch(`/pages/${currentPageId}/back`);
+    setTimeout(() => getCurrentUrl(), 1000);
+  }
+  const forwardHandler = async () => {
+    await fetch(`/pages/${currentPageId}/forward`);
+    setTimeout(() => getCurrentUrl(), 1000);
+  }
+  const reloadHandler = async () => {
+    await fetch(`/pages/${currentPageId}/reload`);
+    setTimeout(() => getCurrentUrl(), 1000);
+  }
+
+  const getCurrentUrl = async () => {
+    const r = await fetch(`/pages/${currentPageId}/url`);
+    document.getElementById('url').value = await r.text();
+  };
+
+  const closeHandler = async pageId => {
+    await fetch(`/pages/${pageId}/close`);
+    const c = currentPageId;
+    console.log(c, pageId, c===pageId);
+    if(+c === +pageId) await openPage(c ? c-1 : 0);
+    setTimeout(() => updatePagesInfo(), 1000);
+  };
+
+  async function updatePagesInfo() {
+    const r = await fetch(`/pages`);
+    const pages = await r.json();
+
+    if(!pages.length) return;
+
+    const tablinks = document.getElementsByClassName("barbutton");
+    for(let n = 0; n < pages.length; n++) {
+      if(!tablinks[n]) {
+        const newSpan = document.createElement('span');
+        newSpan.className = 'barbutton w3-border-right w3-bar-item w3-button w3-hover-cyan';
+        document.getElementById('bar').appendChild(newSpan);
+
+        const newSpan2 = document.createElement('span');
+        newSpan2.innerHTML = `<div id="Page${n}" class="pageImage" style="display:none"><img src="/pages/${n}/image.jpg" id="image${n}" onclick="clickHotspotImage(event);"></div>`;
+        document.getElementById('body2').appendChild(newSpan2);
+      }
+    }
+    while(tablinks[pages.length]) {
+      tablinks[pages.length].remove();
+    }
+
+    for(let i = 0; i < pages.length; i++) {
+      const { url, title } = pages[i];
+      tablinks[i].id = `Tab${i}`;
+      if(title.length > titleMaxLength) tablinks[i].title = title;
+      tablinks[i].innerHTML = `${cutTitle(title) || 'No title'}  <button onclick="closeHandler(${i})" class="w3-button w3-circle w3-tiny w3-padding-small w3-hover-red"><i class="fa fa-close w3-tiny"></i></button>`;
+      tablinks[i].setAttribute('onclick', `openPage(${i})`);
+    }
+
+    document.getElementById('innerHtml').value = pages[currentPageId].html;
+
+    const logsPuppeteer = document.getElementById('logsPuppeteer');
+    logsPuppeteer.value = pages[currentPageId].logs?.puppeteer?.join('\n') || '';
+    if(!logsPuppeteer.matches(":focus")) logsPuppeteer.scrollTop = logsPuppeteer.scrollHeight;
+
+    const logsRequests = document.getElementById('logsRequests');
+    logsRequests.value = pages[currentPageId].logs?.requests?.join('\n') || '';
+    if(!logsRequests.matches(":focus")) logsRequests.scrollTop = logsRequests.scrollHeight;
+  }
+
+  let scrollAcc = 0;
+  let scrollTimeout;
+  function scroll(event) {
+    event.preventDefault();
+    scrollAcc += event.deltaY;
+    if(!scrollTimeout) {
+      scrollTimeout = setTimeout(async () => {
+        await fetch(`/pages/${currentPageId}/scroll?y=${scrollAcc}`);
+        scrollAcc = 0;
+        scrollTimeout = undefined;
+      }, 1000);
+    }
+  }
+
+  async function clickHotspotImage(event) {
+    const { offsetX, offsetY } = event;
+    await fetch(`/pages/${currentPageId}/click?x=${offsetX}&y=${offsetY}`);
+    setTimeout(() => getCurrentUrl(), 1000);
+  }
+ 
+  function openPage(pageId = 0) {
+    currentPageId = pageId;
+    var pages = document.getElementsByClassName("pageImage");
+    const tablinks = document.getElementsByClassName("barbutton");
+    for (let i = 0; i < pages.length; i++) {
+      pages[i].style.display = "none";
+      if(!tablinks[i]) continue;
+      tablinks[i].className = tablinks[i].className.replace(" w3-khaki", "");
+    }
+    document.getElementById(`Tab${currentPageId}`).className += " w3-khaki";
+    const currentPage = document.getElementById(`Page${currentPageId}`);
+    currentPage.style.display = "block";
+    currentPage.addEventListener('wheel', scroll);
+    getCurrentUrl();
+  }
+
+  const addPageHandler = async pageId => {
+    await fetch(`/pages`, { method: 'POST' });
+    await updatePagesInfo();
+    // setTimeout(() => updatePagesInfo(), 1000);
+  };
+
+  async function openNewUrlHandler(ele) {
+    if(event.key === 'Enter') {
+      await fetch(`/pages/${currentPageId}/url`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({url: ele.value}),
+      });
+    }
+  }
+
+  setInterval(() => {
+    document.getElementById(`image${currentPageId}`).src = `/pages/${currentPageId}/image.jpg?` + new Date().getTime();
+  }, 2000);
+
+  setInterval(updatePagesInfo, 5000);
+
+  startKeySpy();
+  updatePagesInfo().then(openPage)
+</script>
+<body>
+
+<div class="w3-bar w3-teal w3-col">
+  <div id="bar">
+    <span class="barbutton w3-border-right w3-bar-item w3-button w3-hover-cyan">
+      Loading...
+    </span>
+  </div>
+  <span class="w3-bar-item w3-button w3-hover-cyan" onclick="addPageHandler()">
+    <button class="w3-button w3-tiny w3-padding-small w3-hover-green"><i class="fa fa-plus w3-tiny"></i></button>
+  </span>
+</div>
+
+<div class="w3-row w3-padding">
+  <div class="w3-col" style="width: 160px;">
+    <button class="w3-button w3-white" onclick="backHandler()"><i class="fa fa-arrow-left w3-large"></i></button>
+    <button class="w3-button w3-white" onclick="forwardHandler()"><i class="fa fa-arrow-right w3-large"></i></button>
+    <button class="w3-button w3-white" onclick="reloadHandler()"><i class="fa fa-refresh w3-large"></i></button>
+  </div>
+  <div class="w3-rest">
+    <input id="url" value="" style="width: 100%;" onfocus="stopKeySpy()" onpointerleave="startKeySpy()" onkeydown="openNewUrlHandler(this)" onClick="this.select()" />
+  </div>
+</div>
+
+<div class="w3-row">
+  <div id="body2" class="w3-col l9">
+    <span>
+      <div id="Page0" class="pageImage">
+        <img src="/pages/0/image.jpg" id="image0" onclick="clickHotspotImage(event);">
+      </div>
+    </span>
+  </div>
+  <div class="w3-col l3">
+    <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="logsPuppeteer"></textarea></div>
+    <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="logsRequests"></textarea></div>
+    <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="innerHtml"></textarea></div>
+  </div>
+</div>
+
+</body>
+</html>

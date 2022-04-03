@@ -1,0 +1,17 @@
+{
+  "name": "guzel",
+  "version": "5.0.1",
+  "description": "guzel - remote headless puppetter watcher",
+  "main": "src/index.js",
+  "keywords": [
+    "guzel",
+    "puppetter",
+    "remote",
+    "headless"
+  ],
+  "author": "Dimitry Ivanov <2@ivanoff.org.ua> # curl -A cv ivanoff.org.ua",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}
