@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     working_dir: /app
     tty: true
-    command: bash -c "npm init --force && npm i -S guzel && node run index"
+    command: bash -c "npm init --force && npm i -S guzel && node index"
     ports:
       - 3208:3208
     volumes:
