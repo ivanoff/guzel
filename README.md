@@ -1,8 +1,8 @@
-# guzel - remote headless puppetter watcher
+# guzel - remote headless puppeteer watcher
 
-**güzel** /ɟy.zɛl/, *adj* (Turkish) - beautiful
+**güzel** /ɟy.zɛl/, Turkish, *adj* - beautiful
 
-If you want to **connect to headless puppetter**, you don't need to change your code at all. Just add the following lines for guzel activation!
+If you want to **connect to headless puppeteer**, you don't need to change your code at all. Just add the following lines for **guzel** activation!
 
 ```javascript
 const guzel = require('guzel');
@@ -12,7 +12,7 @@ const guzel = require('guzel');
 guzel(browser);
 ```
 
-Then open `http://localhost:3208` to control your puppetter browser.
+Then open `http://localhost:3208` to control your puppeteer browser.
 
 ## Demo
 
@@ -31,15 +31,14 @@ const guzel = require('guzel');
 
 //...
 
-const browser = await puppeteer.launch({ headless: true });
+const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 
-// just add the following line -->
 await guzel(browser);
 
 //...
 ```
 
-## Remote browser
+## Remote browser (headless puppeteer remote usage)
 
 You can run **guzel** on remote server (ex. `your-server.com`)
 
@@ -50,4 +49,4 @@ cd guzel/example
 sudo docker-compose up
 ```
 
-Then open `your-server.com:3208` and start surfing with your **guzel puppetter**
+Then open `your-server.com:3208` and start to surf the internet with your **guzel puppeteer**

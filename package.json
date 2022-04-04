@@ -1,11 +1,11 @@
 {
   "name": "guzel",
-  "version": "5.1.1",
-  "description": "guzel - remote headless puppetter watcher",
+  "version": "5.1.2",
+  "description": "guzel - remote headless puppeteer watcher",
   "main": "src/index.js",
   "keywords": [
     "guzel",
-    "puppetter",
+    "puppeteer",
     "remote",
     "headless"
   ],
