@@ -144,6 +144,28 @@
 
   startKeySpy();
   updatePagesInfo().then(openPage)
+
+  async function runFunction() {
+    const s = document.getElementById('functionsSelect');
+    fetch(`/functions/${s.options[s.selectedIndex].value}`);
+  }
+
+  fetch('/functions').then(async f => {
+    const functions = await f.json();
+    const place = document.getElementById('functionsDiv');
+    if(!functions.length) {
+      place.style.display = "none";
+      return;
+    }
+    place.style.display = "block";
+    const s = document.getElementById('functionsSelect');
+    for(const name of functions) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.innerHTML = name;
+      s.appendChild(opt);
+    }
+  });
 </script>
 <body>
 
@@ -181,6 +203,7 @@
     <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="logsPuppeteer"></textarea></div>
     <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="logsRequests"></textarea></div>
     <div class="w3-col m12 w3-padding-small"><textarea style="height: 150px; width: 100%" id="innerHtml"></textarea></div>
+    <div class="w3-col m12 w3-padding-small" id="functionsDiv"><select id="functionsSelect"><option>select function...</option></select> <button onclick="runFunction()">run...</button></div>
   </div>
 </div>
 

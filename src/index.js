@@ -4,10 +4,11 @@ const app = express();
 const port = 3208;
 
 class Guzel {
-  constructor(browser) {
+  constructor(browser, { functions } = {}) {
     this.browser = browser;
     this.pageLogs = [];
     this.logPuppeteer = () => this.log();
+    this.functions = functions || {};
   }
 
   log(id, type, text) {
@@ -148,6 +149,19 @@ class Guzel {
       }
     });
 
+    app.get('/functions', async (req, res) => {
+      res.json(Object.keys(this.functions));
+    });
+
+    app.get('/functions/:name', async (req, res) => {
+      const { name } = req.params;
+      this.logPuppeteer(`await ${name}();`);
+      if(typeof this.functions[name] === 'function') {
+        await this.functions[name]({ page: this.page, browser: this.browser });
+      }
+      res.end();
+    });
+
     app.listen(port, async () => {
       console.log(`started on ${port}`);
     });
@@ -160,7 +174,7 @@ class Guzel {
   }
 }
 
-module.exports = async browser => {
-  const eye = new Guzel(browser);
+module.exports = async (browser, options) => {
+  const eye = new Guzel(browser, options);
   await eye.init()
 }
