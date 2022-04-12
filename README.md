@@ -21,7 +21,7 @@ Then open `http://localhost:3208` to control your puppeteer browser.
 ## Instalation
 
 ```
-npm i -S gusel
+npm i -S guzel
 ```
 
 ## Usage
